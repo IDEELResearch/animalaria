@@ -37,3 +37,7 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# DHS dataset
+dhs_drc_adults.rds
+dhs_drc_adults_sub.rds
