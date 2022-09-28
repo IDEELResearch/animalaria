@@ -38,7 +38,7 @@ designf_dhs2 <-as_survey_design(designf)
 # pick variables
 vars <- c('chickens','cattle','goats','sheep','pigs','ducks','horses')
 
-# function for bivariate models (so beautiful!!)
+# function for bivariate models
 survmodel <- function(var){ # glm function
   m <- svyglm(as.formula(paste0('pfldh_adult ~', var)), designf_dhs2, family=quasibinomial("identity"))
   cbind(tidy(m), confint(m)) %>% filter(term==var)}
