@@ -369,6 +369,7 @@ library(patchwork)
 # read in data
 dat_sf <- dhs %>% st_as_sf(crs = st_crs(4326)) # DHS data as sf object
 
+# GADM boundaries from: https://gadm.org/download_country_v3.html
 admin0 <- readRDS('./admin0.rds') %>%          # GADM admin0 boundaries
   st_transform(4326) %>% # set at ESPG 4326
   filter(grepl('Congo|Rwanda|Tanzania|Burundi|African Republic|Angola|Zambia|Uganda|Sudan|Gabon|Cameroon|Equatorial Guinea', Country)) 
