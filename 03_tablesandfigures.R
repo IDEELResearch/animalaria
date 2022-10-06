@@ -645,7 +645,7 @@ ggplot(dat4, aes(x = factor(var1), y = factor(var2), fill = prev)) +
   geom_tile(color = "white",
           lwd = 1.5,
           linetype = 1) +
-  geom_text(aes(label = round(prev,2)), color = "white", size = 4) +
+  geom_text(aes(label = sprintf("%.2f",round(prev,2))), color = "white", size = 4) +
   scale_fill_continuous(high = "#132B43", low = "#56B1F7") +  # ?scale_colour_gradient
   labs(x = 'animal type #1', y = 'animal type #2', fill = 'Pf prevalence',
        caption = 'combinations with n < 10 removed \n3+ combinations removed') + 
