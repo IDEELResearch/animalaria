@@ -21,147 +21,6 @@ library(eulerr)
 # Load data------------------------------------------------------------------
 dhs <- readRDS("./dhs_drc_adults.rds")
 
-# Histograms of how many animals owned---------------------------------
-# hv246b cows/bulls 
-# hv246c horses/donkeys/mules
-# hv246d goats
-# hv246e sheep
-# hv246f chickens
-# hv246g pigs
-# hv246h duck
-
-# distribution of cattle
-cowsdist <- dhs %>% 
-  dplyr::filter(cattle ==1) %>% 
-  ggplot(aes(x = hv246b, fill = "hv246b"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Cattle")+
-  ylab("Number of participants")+
-  ylim(c(0,100))+
-  theme_bw()+
-  theme(legend.position = "none") 
-
-# distribution of horses
-horsesdist <- dhs %>% 
-  dplyr::filter(horses ==1) %>% 
-  ggplot(aes(x = hv246c, fill = "hv246c"))+
-  geom_histogram(position = "identity", binwidth = 0.5)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Horses")+
-  ylab("")+ 
-  ylim(c(0,100))+
-  scale_x_continuous(breaks = seq(0,10,5))+
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
-
-# distribution of goats
-goatsdist <- dhs %>% 
-  dplyr::filter(goats ==1) %>% 
-  ggplot(aes(x = hv246d, fill = "hv246d"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Goats")+
-  ylab("")+
-  ylim(c(0,1200))+
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
-
-# distribution of sheep
-sheepdist <- dhs %>% 
-  dplyr::filter(sheep == 1) %>% 
-  ggplot(aes(x = hv246e, fill = "hv246e"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Sheep")+
-  ylab("")+
-  ylim(c(0,1200))+
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
-
-# distribution of chickens
-chickensdist <- dhs %>% 
-  dplyr::filter(chickens == 1) %>% 
-  ggplot(aes(x = hv246f, fill = "hv246f"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Chickens")+
-  ylab("Number of participants")+ # far left, keeping labels
-  ylim(c(0,1200))+
-  theme_bw()+
-  theme(legend.position = "none")
-
-# distribution of pigs
-pigsdist <- dhs %>% 
-  dplyr::filter(pigs == 1) %>% 
-  ggplot(aes(x = hv246g, fill = "hv246g"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Pigs")+
-  ylab("")+
-  ylim(c(0,1200))+
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
-
-# distribution of ducks
-ducksdist <- dhs %>% 
-  dplyr::filter(ducks == 1) %>% 
-  ggplot(aes(x = hv246h, fill = "hv246h"))+
-  geom_histogram(position = "identity", binwidth = 1)+
-  scale_fill_manual(values = "skyblue3")+
-  xlab("Ducks")+
-  ylab("")+
-  ylim(c(0,1200))+
-  theme_bw()+
-  theme(legend.position = "none",
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank())
-
-library(cowplot)
-plot_grid( chickensdist,goatsdist, pigsdist, ducksdist, sheepdist, cowsdist, horsesdist, ncol = 5, nrow = 2)
-ggsave('./plots/descriptive_hist.png', width=8, height=4) # dimensions are a bit off
-
-
-# HT's histogram
-output <- dhs %>% 
-  mutate(ID = row_number()) %>%
-  select(ID, hv246b:hv246h) %>%
-  pivot_longer(cols = hv246b:hv246h, names_to = "animal", values_to = "n") %>%
-  mutate(animal = case_when(animal == "hv246b" ~ "Cattle",
-                            animal == "hv246c" ~ "Horses, donkeys, and mules",
-                            animal == "hv246d" ~ "Goats",
-                            animal == "hv246e" ~ "Sheep",
-                            animal == "hv246f" ~ "Chickens",
-                            animal == "hv246g" ~ "Pigs",
-                            animal == "hv246h" ~ "Ducks")) %>%
-  filter(n != 0) # remove those owning 0 animals
-
-# check
-table(output$animal, useNA = 'always')
-
-# plot
-library(ggbreak) # if use ggbreak() commented out below - new package to break up axes
-# must cite S Xu, M Chen, T Feng, L Zhan, L Zhou, G Yu. Use ggbreak to effectively utilize plotting space to deal with large
-# datasets and outliers. Frontiers in Genetics. 2021, 12:774846. doi: 10.3389/fgene.2021.774846 
-ggplot() +
-  geom_histogram(data = output, aes(x=n, y=..count..,
-                                    fill=animal, color=animal), alpha=0.1, show.legend = F, bins=100) +
-  facet_grid(animal~., scales = 'free', labeller = label_wrap_gen(8)) + 
-  labs(x='Number of animals owned by the household',
-       y='Number of participants') +
-  theme_classic() #+
-  #ggbreak::scale_x_break(c(65,90))+
-  #scale_x_continuous(breaks = seq(0, 100, by=10))
-
-ggsave('./plots/animal_hist.png', width=4, height=5)
 
 # Table 1 -------------------------------------------------------
 dhs$hh_weight <- dhs$hv005/1000000
@@ -365,6 +224,7 @@ library(gstat)
 library(stars)
 library(tidyverse)
 library(patchwork)
+library(sp)
 
 # read in data
 dat_sf <- dhs %>% st_as_sf(crs = st_crs(4326)) # DHS data as sf object
@@ -522,7 +382,50 @@ A + B + C + D + plot_layout(nrow=2, ncol = 2) + plot_annotation(tag_levels = 'A'
 # output
 ggsave('./plots/prev_map.png', width=15, height=9)
 
-# < with eulerr package --------------------------------------------------------
+# Supp Fig 3 Histograms of how many animals owned---------------------------------
+# hv246b cows/bulls 
+# hv246c horses/donkeys/mules
+# hv246d goats
+# hv246e sheep
+# hv246f chickens
+# hv246g pigs
+# hv246h duck
+
+# HT's histogram
+output <- dhs %>% 
+  mutate(ID = row_number()) %>%
+  select(ID, hv246b:hv246h) %>%
+  pivot_longer(cols = hv246b:hv246h, names_to = "animal", values_to = "n") %>%
+  mutate(animal = case_when(animal == "hv246b" ~ "Cattle",
+                            animal == "hv246c" ~ "Horses, donkeys, and mules",
+                            animal == "hv246d" ~ "Goats",
+                            animal == "hv246e" ~ "Sheep",
+                            animal == "hv246f" ~ "Chickens",
+                            animal == "hv246g" ~ "Pigs",
+                            animal == "hv246h" ~ "Ducks")) %>%
+  filter(n != 0) # remove those owning 0 animals
+
+# check
+table(output$animal, useNA = 'always')
+
+# plot
+library(ggbreak) # if use ggbreak() commented out below - new package to break up axes
+# must cite S Xu, M Chen, T Feng, L Zhan, L Zhou, G Yu. Use ggbreak to effectively utilize plotting space to deal with large
+# datasets and outliers. Frontiers in Genetics. 2021, 12:774846. doi: 10.3389/fgene.2021.774846 
+ggplot() +
+  geom_histogram(data = output, aes(x=n, y=..count..,
+                                    fill=animal, color=animal), alpha=0.1, show.legend = F, bins=100) +
+  facet_grid(animal~., scales = 'free', labeller = label_wrap_gen(8)) + 
+  labs(x='Number of animals owned by the household',
+       y='Number of participants') +
+  theme_classic() #+
+#ggbreak::scale_x_break(c(65,90))+
+#scale_x_continuous(breaks = seq(0, 100, by=10))
+
+ggsave('./plots/animal_hist.png', width=4, height=5)
+
+# Supp Fig 4: euler plot --------------------------------------------------------
+# eulerr package
 library(eulerr)
 # read in data
 dat <- readRDS('./dhs_drc_adults.rds')     # clean DHS data
@@ -588,7 +491,7 @@ p
 ggsave('./plots/eulerr_ellipse.png', plot = p, width=4, height=4)
 
 
-# < tile plot ------------------------------------------------------------------
+# Supp Fig 6: tile plot ------------------------------------------------------------------
 # read in data
 dat <- readRDS('./dhs_drc_adults.rds')     # clean DHS data
 
@@ -654,3 +557,552 @@ ggplot(dat4, aes(x = factor(var1), y = factor(var2), fill = prev)) +
 
 
 ggsave('./plots/tile_plot.png', width=6, height=6)
+
+# Supp Fig 5: kriged surface for each animal---------------
+
+# Kriging - including estimates of % households who own the animal + uncertainty
+
+# uses dat_sf -> output_points dataset created in Maps above; also gadm boundaries
+
+### CATTLE
+
+# make variogram
+cattle.vgm <- gstat::variogram(cattle~1, output_points)
+plot(cattle.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+cattle.fit <- gstat::fit.variogram(cattle.vgm, model=vgm(psill=45,"Exp",range=200, nugget=1))
+
+# plot
+plot(cattle.vgm,cattle.fit)
+
+# simple kriging
+spDRC <- as_Spatial(DRC)
+grd <- makegrid(spDRC, n = 50000)# making grid of points
+colnames(grd) <- c('x','y')
+grd_pts <- SpatialPoints(coords = grd, 
+                         proj4string=CRS(proj4string(spDRC)))
+
+# find all points in `grd_pts` that fall within DRC outline
+grd_pts_in <- grd_pts[spDRC, ]
+
+# transform grd_pts_in back into a data frame
+gdf <- as.data.frame(coordinates(grd_pts_in)) 
+
+# conduct kriging: CATTLE ownership
+m.kriged.cattle <- gstat::krige(cattle~1, output_points, st_as_sf(grd_pts_in), model=cattle.fit)
+hist(m.kriged.cattle$var1.pred,100)
+hist(sqrt(m.kriged.cattle$var1.var),100)
+summary(sqrt(m.kriged.cattle$var1.var))
+summary(m.kriged.cattle$var1.pred)
+
+r.se <- max(sqrt(m.kriged.cattle$var1.var)) - min(sqrt(m.kriged.cattle$var1.var))
+
+# assign points into bins
+krige_cattle <- m.kriged.cattle %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)),
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+
+### CHICKENS
+# conduct kriging: CHICKENS ownership
+
+# make variogram
+chickens.vgm <- gstat::variogram(chickens~1, output_points)
+plot(chickens.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+chickens.fit <- gstat::fit.variogram(chickens.vgm, model=vgm(psill=600,"Exp",range=150, nugget=1))
+# plot
+plot(chickens.vgm,chickens.fit)
+
+
+m.kriged.own_ch <- gstat::krige(chickens~1, output_points, st_as_sf(grd_pts_in), model=chickens.fit)
+summary(m.kriged.own_ch$var1.pred)
+summary(sqrt(m.kriged.own_ch$var1.var))
+hist(m.kriged.own_ch$var1.pred,100)
+hist(sqrt(m.kriged.own_ch$var1.var),100)
+
+r.se <- max(sqrt(m.kriged.own_ch$var1.var)) - min(sqrt(m.kriged.own_ch$var1.var))
+
+# assign points into bins
+krige_ownch <- m.kriged.own_ch %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)),
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+# GOATS
+
+# make variogram
+goats.vgm <- gstat::variogram(goats~1, output_points)
+plot(goats.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+goats.fit <- gstat::fit.variogram(goats.vgm, model=vgm(psill=400,"Exp",range=400, nugget=1))
+
+# plot
+plot(goats.vgm,goats.fit)
+
+m.kriged.own_go <- gstat::krige(goats~1, output_points, st_as_sf(grd_pts_in), model=goats.fit)
+summary(m.kriged.own_go$var1.pred)
+summary(sqrt(m.kriged.own_go$var1.var))
+hist(m.kriged.own_go$var1.pred,100)
+hist(sqrt(m.kriged.own_go$var1.var),100)
+
+r.se <- max(sqrt(m.kriged.own_go$var1.var)) - min(sqrt(m.kriged.own_go$var1.var))
+
+# assign points into bins
+krige_owngo <- m.kriged.own_go %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)), 
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+
+# DUCKS 
+
+# make variogram
+ducks.vgm <- gstat::variogram(ducks~1, output_points)
+plot(ducks.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+ducks.fit <- gstat::fit.variogram(ducks.vgm, model=vgm(psill=150,"Exp",range=500, nugget=1))
+# plot
+plot(ducks.vgm,ducks.fit)
+
+m.kriged.own_du <- gstat::krige(ducks~1, output_points, st_as_sf(grd_pts_in), model=ducks.fit)
+summary(m.kriged.own_du$var1.pred)
+summary(sqrt(m.kriged.own_du$var1.var))
+hist(m.kriged.own_du$var1.pred,100)
+hist(sqrt(m.kriged.own_du$var1.var),100)
+
+r.se <- max(sqrt(m.kriged.own_du$var1.var)) - min(sqrt(m.kriged.own_du$var1.var))
+
+# assign points into bins
+krige_owndu <- m.kriged.own_du %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)),
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+# SHEEP 
+
+# make variogram
+sheep.vgm <- gstat::variogram(sheep~1, output_points)
+plot(sheep.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+sheep.fit <- gstat::fit.variogram(sheep.vgm, model=vgm(psill=42,"Exp",range=800, nugget=1))
+# plot
+plot(sheep.vgm,sheep.fit)
+
+m.kriged.own_sh <- gstat::krige(sheep~1, output_points, st_as_sf(grd_pts_in), model=sheep.fit)
+summary(m.kriged.own_sh$var1.pred)
+summary(sqrt(m.kriged.own_sh$var1.var))
+hist(m.kriged.own_sh$var1.pred,100)
+hist(sqrt(m.kriged.own_sh$var1.var),100)
+
+r.se <- max(sqrt(m.kriged.own_sh$var1.var)) - min(sqrt(m.kriged.own_sh$var1.var))
+
+# assign points into bins
+krige_ownsh <- m.kriged.own_sh %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)),  #@Kate, i played around with many different break points--feel free to change
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+# PIGS 
+pigs.vgm <- gstat::variogram(pigs~1, output_points)
+plot(pigs.vgm)
+# fit a model to the sample variogram
+# https://gisgeography.com/semi-variogram-nugget-range-sill/
+pigs.fit <- gstat::fit.variogram(pigs.vgm, model=vgm(psill=170,"Exp",range=350, nugget=1))
+# plot
+plot(pigs.vgm,pigs.fit)
+
+m.kriged.own_pi <- gstat::krige(pigs~1, output_points, st_as_sf(grd_pts_in), model=pigs.fit)
+summary(m.kriged.own_pi$var1.pred)
+summary(sqrt(m.kriged.own_pi$var1.var))
+hist(m.kriged.own_pi$var1.pred,100)
+hist(sqrt(m.kriged.own_pi$var1.var),100)
+
+r.se <- max(sqrt(m.kriged.own_pi$var1.var)) - min(sqrt(m.kriged.own_pi$var1.var))
+
+# assign points into bins
+krige_ownpi <- m.kriged.own_pi %>% cbind(gdf$x, gdf$y) %>% mutate(
+  var1.pred = cut(var1.pred, breaks=seq(0,100,by=10)),
+  se = sqrt(var1.var),
+  se = cut(se, breaks=c(0,5,10,15,20,25))) %>% filter(!is.na(var1.pred))
+
+# conduct kriging: HORSES ownership
+# make variogram
+horses.vgm <- gstat::variogram(horses~1, output_points)
+plot(horses.vgm)
+## Horse kriging not done because n=24 households out of 17,703 (too few observations)
+
+summary(sqrt(m.kriged.cattle$var1.var))
+summary(sqrt(m.kriged.own_ch$var1.var))
+summary(sqrt(m.kriged.own_go$var1.var))
+summary(sqrt(m.kriged.own_du$var1.var))
+summary(sqrt(m.kriged.own_sh$var1.var))
+summary(sqrt(m.kriged.own_pi$var1.var))
+
+
+# Visualizing kriging
+
+library(scales)
+library(cowplot)
+show_col(viridis_pal()(10))
+
+pal <- c("(0,10]"="#FDE725FF","(10,20]"="#B4DE2CFF","(20,30]"="#6DCD59FF","(30,40]"="#35B779FF",
+         "(40,50]"="#1F9E89FF","(50,60]"="#26828EFF","(60,70]"="#31688EFF",
+         "(70,80]"="#3E4A89FF","(80,90]"="#482878FF","(90,100]"="#440154FF")
+
+error <- c("(0,5]"="gray90","(5,10]"="gray80","(10,15]"="gray70", "(15,20]"="gray60","(20,25]"="gray50")
+
+cattlekrig <- ggplot() + 
+  geom_tile(data=(krige_cattle %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal, na.value="grey50")+
+  labs(x='', y='', title = "A1. Cattle ownership", fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.cattle <- ggplot() + 
+  geom_tile(data=(krige_cattle %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "A2. Uncertainty (cattle ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+chickenkrig <- ggplot() + 
+  geom_tile(data=(krige_ownch %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred),na.rm=F) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal,na.value="grey50")+
+  labs(x='', y='', title = "B1. Chicken ownership", fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.chicken <- ggplot() + 
+  geom_tile(data=(krige_ownch %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "B2. Uncertainty (chicken ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+goatkrig <- ggplot() + 
+  geom_tile(data=(krige_owngo %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal,na.value="grey50")+
+  labs(x='', y='', title = "C1. Goat ownership", fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.goat <- ggplot() + 
+  geom_tile(data=(krige_owngo %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "C2. Uncertainty (goat ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+duckkrig <- ggplot() + 
+  geom_tile(data=(krige_owndu %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal,na.value="grey50")+
+  labs(x='', y='', title = "D1. Duck ownership", fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.duck <- ggplot() + 
+  geom_tile(data=(krige_owndu %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "D2. Uncertainty (duck ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+sheepkrig <- ggplot() + 
+  geom_tile(data=(krige_ownsh %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal,na.value="grey50")+
+  labs(x='', y='', title = "E1. Sheep ownership",fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.sheep <- ggplot() + 
+  geom_tile(data=(krige_ownsh %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "E2. Uncertainty (sheep ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+pigkrig <- ggplot() + 
+  geom_tile(data=(krige_ownpi %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=var1.pred)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = pal,na.value="grey50")+
+  labs(x='', y='', title = "F1. Pig ownership",fill="% of households \nwho own") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2,size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+se.pig <- ggplot() + 
+  geom_tile(data=(krige_ownpi %>% as.data.frame), aes(x=gdf.x,y=gdf.y,fill=se)) + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  scale_fill_manual(values = error)+
+  labs(x='', y='', title = "F2. Uncertainty (pig ownership)",
+       fill="Standard error \n(as % ownership)") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "none") +
+  # theme(legend.position = "left",
+  #       legend.direction = "vertical",
+  #       legend.text=element_text(size=12),
+  #       legend.spacing.x = unit(0.25,"cm"),
+  #       legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+## Plot & Save
+legend.own <- get_legend(cattlekrig +
+                           theme(legend.position = "left", legend.text = element_text(size=9),
+                                 legend.title = element_text(size=9)))
+legend.se <- get_legend(se.cattle + theme(legend.position = "right",
+                                          legend.text = element_text(size=9),
+                                          legend.title = element_text(size=9)))
+
+# Smaller (legends)
+plot_grid(legend.own) 
+ggsave("./plots/ownership_leg.png",
+       dpi=800)
+
+plot_grid(legend.se)
+ggsave("./plots/SE_leg.png",
+       dpi=800)
+
+#Full
+plot_grid(cattlekrig,se.cattle)
+ggsave("./plots/FigS5_A.png",
+       dpi=800)
+
+plot_grid(chickenkrig,se.chicken)
+ggsave("./plots/FigS5_B.png",
+       dpi=800)
+
+plot_grid(goatkrig,se.goat)
+ggsave("./plots/FigS5_C.png",
+       dpi=800)
+
+plot_grid(duckkrig,se.duck)
+ggsave("./plots/FigS5_D.png",
+       dpi=800)
+
+plot_grid(sheepkrig,se.sheep)
+ggsave("./plots/FigS5_E.png",
+       dpi=800)
+
+plot_grid(pigkrig,se.pig)
+ggsave("./plots/FigS5_F.png",
+       dpi=800)
+
