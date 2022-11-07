@@ -1106,3 +1106,35 @@ plot_grid(pigkrig,se.pig)
 ggsave("./plots/FigS5_F.png",
        dpi=800)
 
+# Figure S5 G - Horses. Any household in the cluster owns a horse (Y/N)
+ggplot() + 
+  geom_sf(data=admin0 %>% filter(ISO != 'COD'), fill="cornsilk2", color="cornsilk3") +
+  geom_sf(data=DRC, fill=NA, color="tan4", size=0.75) + 
+  geom_sf(data=output_points %>% mutate(any_horse = ifelse(horses_hh>0,"Yes","No")) %>% 
+            arrange(desc(horses_hh)),  
+          aes(color=any_horse), alpha=0.8,size=1.7) +
+  scale_color_manual(values = c("gray25","red"))+
+  labs(x='', y='', title = "G. Horse ownership",color="1 or more household(s) \nown horse",
+       size="") + 
+  theme_bw(base_size=14) + 
+  scale_x_continuous(limits=c(12,31)) + 
+  scale_y_continuous(limits=c(-13.5,5.4)) + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.ticks=element_blank(), 
+        axis.text.x=element_blank(), 
+        axis.text.y=element_blank(),
+        panel.background = element_rect(fill="gray85", color=NA),
+        plot.title = element_text(vjust = -2, size=9,face="bold")) +
+  theme(legend.position = "left",
+        legend.direction = "vertical",
+        legend.text=element_text(size=9),
+        legend.title=element_text(size=9,face="bold"),
+        legend.spacing.x = unit(0.25,"cm"),
+        legend.margin=margin(b = 0, unit='cm')) +
+  theme(plot.background=element_rect(fill='white'),
+        plot.margin=unit(c(0,0.10,-.35,-.35),"cm"))
+
+ggsave("./plots/FigS5_G.png",
+       dpi=800)
+
