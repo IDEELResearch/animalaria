@@ -382,6 +382,24 @@ A + B + C + D + plot_layout(nrow=2, ncol = 2) + plot_annotation(tag_levels = 'A'
 # output
 ggsave('./plots/prev_map.png', width=15, height=9)
 
+# eps/vectorized formats for publication - use cairo to preserve transparency, ensure XQuartz installed
+ggsave('./plots/prev_map.eps', width=15, height=9, device = cairo_ps,fallback_resolution = 600)
+
+# eps attempts that failed (for future reference)
+### ggsave('./plots/prev_map2.eps', width=15, height=9, device = "eps")
+
+### library(svglite)
+### ggsave(filename = "./plots/prev_map.eps")
+
+### library(Cairo)
+### cairo_ps(filename = "./plots/prev_map.eps",
+###         width = 15, height = 9, 
+###         fallback_resolution = 300)
+
+# as a backup, pdf appears non-pixelated at high zoom
+## ggsave('./plots/prev_map.pdf', width=15, height=9)
+
+
 # Supp Fig 3 Histograms of how many animals owned---------------------------------
 # hv246b cows/bulls 
 # hv246c horses/donkeys/mules

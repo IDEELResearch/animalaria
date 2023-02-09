@@ -141,6 +141,9 @@ ggplot(glmresults, aes(x=ID, y=estimate*100)) +
 
 ggsave('./plots/model_hist.png', width=6, height=4)
 
+# eps/vectorized formats for publication - use cairo to preserve transparency, ensure XQuartz installed
+ggsave('./plots/model_hist.eps', width=6, height=4, device = cairo_ps,fallback_resolution = 600)
+
 
 # does malaria prev vary if a household owns only chickens vs chickens+other animals vs no chickens?
 ## chickens only vs chicken+other-------------------
