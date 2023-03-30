@@ -24,6 +24,23 @@ library(RColorBrewer)
 dhs2 <- readRDS("dhs_drc_adults_sub.rds")
 # created in 01_datacleaning.R
 
+# add new variables for below sections
+dhs2 <- dhs2 %>% mutate(
+  crossemm = case_when(
+    hv244==1 & cattle==1 ~ "land and cattle",
+    hv244==1 & cattle==0 ~ "land no cattle",
+    hv244==0 & cattle==1 ~ "no land, cattle",
+    hv244==0 & cattle==0 ~ "neither",
+    TRUE ~ NA_character_))
+
+dhs2 <- dhs2 %>% mutate(
+  crossemm_chick = case_when(
+    hv244==1 & chickens==1 ~ "land and chick",
+    hv244==1 & chickens==0 ~ "land no chick",
+    hv244==0 & chickens==1 ~ "no land, chick",
+    hv244==0 & chickens==0 ~ "neither",
+    TRUE ~ NA_character_))
+
 # MODEL------------------------------------------------------------------
 # weight data
 dhs2$hh_weight <- dhs2$hv005/1000000
@@ -83,6 +100,14 @@ summary(cat10)
 confint(cat10)
 
 # modification by land ownership and modern housing--------------------------------------------------------------------------------
+# weighted counts - using new variables above
+
+#cattle 3 cross tab
+svyby(~crossemm,~pfldh_adult, designf_dhs2, svytotal, na.rm=T, survey.lonely.psu="adjust") %>% clipr::write_clip()
+#chicken 3 cross tab
+svyby(~crossemm_chick,~pfldh_adult, designf_dhs2, svytotal, na.rm=T, survey.lonely.psu="adjust") %>% clipr::write_clip()
+
+# calc differences
 modland <- svyglm(pfldh_adult ~ chickens+ modernhousing+ sex + 
                   treatedbednet + urbanrural + hv270 +landown, designf_dhs2, family=quasibinomial("logit")) # identity and log not converging
 summary(modland)
