@@ -523,7 +523,6 @@ getmode <- function(v) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
-
 dat2 <- dat %>% dplyr::select(cattle:ducks, adultmalaria) %>%
   # classify malaria
   mutate(adultmalaria = case_when(adultmalaria == 'Pfldh positive' ~ 1,
@@ -575,6 +574,119 @@ ggplot(dat4, aes(x = factor(var1), y = factor(var2), fill = prev)) +
 
 
 ggsave('./plots/tile_plot.png', width=6, height=6)
+
+# Supp Fig 6: v2 tile plot ---------------
+dat <- readRDS('./dhs_drc_adults.rds')     # clean DHS data
+dat$hh_weight <- dat$hv005/1000000
+# subset dataset
+dat2 <- dat %>% dplyr::select(cattle:ducks, pfldh_adult,hv001,hv022, hh_weight)
+
+# list of animals
+# vars <- c('cattle','chickens','ducks','goats','horses','pigs','sheep') # indicator vars for ownership of each (0=no, 1=yes)
+
+# tried many ways to make this less repetitive but it was becoming more work/time than writing the below:
+dat2 <- dat2 %>% mutate(cattle_chickens = case_when(cattle==1 & chickens==1 ~ 1, TRUE ~ 0), 
+                        cattle_ducks = case_when(cattle==1 & ducks==1 ~ 1, TRUE ~ 0),
+                        cattle_goats = case_when(cattle==1 & goats==1 ~ 1, TRUE ~ 0),
+                        cattle_horses = case_when(cattle==1 & horses==1 ~ 1, TRUE ~ 0),
+                        cattle_pigs = case_when(cattle==1 & pigs==1 ~ 1, TRUE ~ 0),
+                        cattle_sheep = case_when(cattle==1 & sheep==1 ~ 1, TRUE ~ 0),
+                        chickens_ducks = case_when(chickens==1 & ducks==1 ~ 1, TRUE ~ 0),
+                        chickens_goats = case_when(chickens==1 & goats==1 ~ 1, TRUE ~ 0),
+                        chickens_horses = case_when(chickens==1 & horses==1 ~ 1, TRUE ~ 0),
+                        chickens_pigs = case_when(chickens==1 & pigs==1 ~ 1, TRUE ~ 0),
+                        chickens_sheep = case_when(chickens==1 & sheep==1 ~ 1, TRUE ~ 0),
+                        ducks_goats = case_when(ducks==1 & goats==1 ~ 1, TRUE ~ 0),
+                        ducks_horses = case_when(ducks==1 & horses==1 ~ 1, TRUE ~ 0),
+                        ducks_pigs = case_when(ducks==1 & pigs==1 ~ 1, TRUE ~ 0),
+                        ducks_sheep = case_when(ducks==1 & sheep==1 ~ 1, TRUE ~ 0),
+                        goats_horses = case_when(goats==1 & horses==1 ~ 1, TRUE ~ 0),
+                        goats_pigs = case_when(goats==1 & pigs==1 ~ 1, TRUE ~ 0),
+                        goats_sheep = case_when(goats==1 & sheep==1 ~ 1, TRUE ~ 0),
+                        horses_pigs = case_when(horses==1 & pigs==1 ~ 1, TRUE ~ 0),
+                        horses_sheep = case_when(horses==1 & sheep==1 ~ 1, TRUE ~ 0),
+                        pigs_sheep = case_when(pigs==1 & sheep==1 ~ 1, TRUE ~ 0),
+) %>% mutate_at(c(12:32), factor)
+dat2$pfldh_adult <- as.factor(dat2$pfldh_adult)
+
+# save new var names in list to call in function below
+vars2 <- paste((colnames(dat2[,c(12:32)])))#, collapse = "    ")
+
+# account for survey design
+library(survey)
+library(srvyr)
+
+designf_supp <-svydesign(ids=dat2$hv001, strata=dat2$hv022 , weights=dat2$hh_weight,  data=dat2)
+options(survey.lonely.psu="adjust")
+designf_dhs2_supp <-as_survey_design(designf_supp)
+
+# use function to calculate weighted total and prevalence over all new variables above
+survtable <- function(var){ 
+  df <- as.data.frame(svyby(~pfldh_adult,as.formula(paste0('~', var)), designf_dhs2_supp, svytotal, na.rm=T, survey.lonely.psu="adjust")) 
+  df$var <- paste0(var) # adding column for each element of var
+  df <- df %>% rename(own = paste0(var)) %>% #ensure stacking of each iteration through var list
+    select(c("own", "pfldh_adult0", "pfldh_adult1", "var")) %>% 
+    filter(own==1) %>% 
+    mutate(prevdenom = sum(pfldh_adult0 + pfldh_adult1),
+           prev = pfldh_adult1/prevdenom,
+           var1 = word(var,1, sep = "\\_"),
+           var2 = word(var,2, sep = "\\_"))
+  rownames(df) = seq(length=nrow(df))
+  cbind(df) } #%>% filter(var==1)
+
+testresults <- map_dfr(vars2,survtable) 
+view(testresults)
+
+library(ggtext)
+# animal outline labels from: http://www.phylopic.org/image/a9297cbd-10ca-457b-b5d5-a0b038720df7/
+# same images as main text figure 
+# browse by animal species
+labelsx <- c()
+labelsy <- c()
+varsx <- c('cattle','chickens','ducks','goats','horses','pigs','sheep') # 
+varsy <- c('chickens','ducks','goats','horses','pigs','sheep') # no cattle on y so plot is duplicated
+
+# create a label string telling R where to find the image file
+for (i in 1:length(varsx)){
+  img.name <- varsx[i]
+  labelsx <- c(labels, paste0("<img src='./images/", varsx[i], ".png", "' width='25' /><br>*", img.name,"*"))
+}
+for (i in 1:length(varsy)){
+  img.name <- varsy[i]
+  labelsy <- c(labelsy, paste0("<img src='./images/", varsy[i], ".png", "' width='25' /><br>*", img.name,"*"))
+}
+
+# text labels, no images
+ggplot(testresults, aes(x = factor(var1), y = factor(var2), fill = prev)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) +
+  geom_text(aes(label = sprintf("%.2f",round(prev,2))), color = "white", size = 4) +
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +  # ?scale_colour_gradient
+  labs(x = 'animal type #1', y = 'animal type #2', fill = 'Pf prevalence') + 
+  coord_fixed() + 
+  theme_classic()
+
+# animal images as labels
+ggplot(testresults, aes(x = factor(var1), y = factor(var2), fill = prev)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) +
+  geom_text(aes(label = sprintf("%.2f",round(prev,2))), color = "white", size = 4) +
+  scale_fill_continuous(high = "#132B43", low = "#56B1F7") +  # ?scale_colour_gradient
+  scale_x_discrete(labels=labelsx) + #breaks=testresults$ID, 
+  scale_y_discrete(labels=labelsy) + #breaks=testresults$ID, 
+  labs(x = 'animal type #1', y = 'animal type #2', fill = 'Pf prevalence') + 
+  coord_fixed() + 
+  theme(axis.text.x = ggtext::element_markdown(color = "black", size = 11),
+        axis.text.y = ggtext::element_markdown(color = "black", size = 11),
+        axis.ticks.x=element_blank(),
+        axis.ticks.y=element_blank(),
+        panel.background = element_blank(),
+        panel.grid.minor=element_blank()) 
+
+ggsave('./plots/tile_plotv2.png', width=6, height=6)
+
 
 # Supp Fig 5: kriged surface for each animal---------------
 
