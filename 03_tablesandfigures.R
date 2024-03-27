@@ -53,6 +53,8 @@ prop.table(svytable(~cattle, designf_dhs2))
 svyciprop(~cattle, designf_dhs2, method="lo")
 # check the others again
 prop.table(svytable(~horses, designf_dhs2))
+svyciprop(~horses, designf_dhs2, method="lo")
+
 prop.table(svytable(~ducks, designf_dhs2))
 prop.table(svytable(~sheep, designf_dhs2))
 
@@ -81,7 +83,6 @@ dhs <- dhs %>%
 # create survey design
 DHSdesign <- svydesign(id=~hv001, strata=~hv022, weights=~hh_weight, data=dhs) 
 
-# without survey.lonely.psu options, function fails b/c of single clusters
 # http://r-survey.r-forge.r-project.org/survey/exmample-lonely.html
 # 'adjust' recommended by DHS https://userforum.dhsprogram.com/index.php?t=msg&goto=12423&S=Google&t=msg&goto=12423&S=Google
 options(survey.lonely.psu="adjust")
@@ -216,6 +217,84 @@ addmargins(table(dhs$horses, dhs$adultmalaria))
 addmargins(table(dhs$sheep, dhs$adultmalaria))
 addmargins(table(dhs$pigs, dhs$adultmalaria))
 addmargins(table(dhs$ducks, dhs$adultmalaria))
+
+
+dhs = dhs %>%
+  mutate(nocattle = case_when(
+    cattle ==1 ~ 0, # no cattle
+    cattle == 0 ~ 1, # no cattle
+    TRUE ~ NA_real_) %>% as.numeric(),
+    nochickens = case_when(
+      chickens ==1 ~ 0, #
+      chickens == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric(),
+    nogoats = case_when(
+      goats ==1 ~ 0, #
+      goats == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric(),
+    nosheep = case_when(
+      sheep ==1 ~ 0, #
+      sheep == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric(),    
+    nohorses = case_when(
+      horses ==1 ~ 0, #
+      horses == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric(),
+    noducks = case_when(
+      ducks ==1 ~ 0, #
+      ducks == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric(),
+    nopigs = case_when(
+      pigs ==1 ~ 0, #
+      pigs == 0 ~ 1, # 
+      TRUE ~ NA_real_) %>% as.numeric()
+    )
+DHSdesign <- svydesign(id=~hv001, strata=~hv022, weights=~hh_weight, data=dhs) 
+
+survtable_all("cattle") 
+survtable("cattle")
+survtable_all("nocattle") 
+survtable("nocattle")
+
+survtable_all("horses") 
+survtable("horses")
+survtable_all("nohorses") 
+survtable("nohorses")
+
+survtable_all("chickens") 
+survtable("chickens")
+survtable_all("nochickens") 
+survtable("nochickens")
+
+survtable_all("ducks") 
+survtable("ducks")
+survtable_all("noducks") 
+survtable("noducks")
+
+survtable_all("goats") 
+survtable("goats")
+survtable_all("nogoats") 
+survtable("nogoats")
+
+survtable_all("sheep") 
+survtable("sheep")
+survtable_all("nosheep") 
+survtable("nosheep")
+
+survtable_all("pigs") 
+survtable("pigs")
+survtable_all("nopigs") 
+survtable("nopigs")
+
+# counts for all n in dataset
+svytotal(~cattle, DHSdesign, na.rm=T, survey.lonely.psu="adjust")
+svytotal(~nocattle, DHSdesign, na.rm=T, survey.lonely.psu="adjust")
+
+
+# counts for n in dataset, stratified by malaria Y or N
+survtable <- function(var){ 
+  svyby(as.formula(paste0('~', var)),~pfldh_adult, DHSdesign, svytotal, na.rm=T, survey.lonely.psu="adjust") %>% clipr::write_clip()
+}
 
 
 # Maps------------------------------------------------------------------------------------------
