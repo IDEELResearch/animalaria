@@ -1,3 +1,7 @@
+# renv init--------------
+#install.packages("renv")
+renv::init()
+
 # Load packages--------------------------------------------------
 library(tidyverse)
 library(arsenal)
